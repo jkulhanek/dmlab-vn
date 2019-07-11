@@ -1,5 +1,7 @@
 # <img src="/docs/template/logo.png" alt="DeepMind Lab">
 
+This is a cloned version of DeepMind Lab, modified for visual navigation.
+
 *DeepMind Lab* is a 3D learning environment based on id Software's
 [Quake III Arena](https://github.com/id-Software/Quake-III-Arena) via
 [ioquake3](https://github.com/ioquake/ioq3) and
