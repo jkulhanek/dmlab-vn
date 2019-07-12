@@ -1,4 +1,4 @@
-local factory = require 'factories.seek_avoid_factory'
+local factory = require 'factories.custom.house_factory'
 
 return factory.createLevelApi{
     mapName = 'house',
