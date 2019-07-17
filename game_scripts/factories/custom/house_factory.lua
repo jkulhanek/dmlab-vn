@@ -3,6 +3,8 @@ local map_maker = require 'dmlab.system.map_maker'
 local random = require 'common.random'
 local texture_sets = require 'themes.texture_sets'
 
+local common = require 'factories.custom.common'
+
 factory = {}
 function factory.createLevelApi(kwargs)
     api = {}
