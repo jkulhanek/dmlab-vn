@@ -1,3 +1,0 @@
-local procedural = {}
-
-procedural 

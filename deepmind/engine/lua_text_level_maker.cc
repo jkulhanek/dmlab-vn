@@ -357,6 +357,7 @@ lua::NResultsOr LuaTextLevelMaker::MapFromTextLevel(lua_State* L) {
   // optional, no error if missing
   args.LookUp("skyboxTextureName", &level_settings.skybox_texture_name);
   args.LookUp("ceilingHeight", &level_settings.ceiling_height);
+  args.LookUp("ceilingScale", &level_settings.ceiling_scale);
   args.LookUp("drawDefaultLayout", &level_settings.draw_default_layout);
   double cell_size_game_units = 100.0;
   args.LookUp("cellSize", &cell_size_game_units);

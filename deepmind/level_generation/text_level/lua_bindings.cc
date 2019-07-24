@@ -128,6 +128,39 @@ lua::NResultsOr LuaSnippetEmitter::MakeEntity(lua_State* L) {
   return 1;
 }
 
+
+lua::NResultsOr LuaSnippetEmitter::MakePhysicalEntity(lua_State* L) {
+  lua::TableRef table;
+  if (!lua::Read(L, 2, &table)) {
+    return "[makePhysicalEntity] - Invalid argument, it must be a table.";
+  }
+
+  double i, j, width, depth, height;
+  std::string classname;
+  absl::flat_hash_map<std::string, std::string> attrs;
+
+  if (!table.LookUp("i", &i) || !table.LookUp("j", &j) ||
+      !table.LookUp("classname", &classname) ||
+      !table.LookUp("width", &width) ||
+      !table.LookUp("height", &height) ||
+      !table.LookUp("depth", &depth)) {
+    return "[makePhysicalEntity] - Invalid arguments";
+  }
+
+  if (table.Contains("attributes")) {
+    if (!table.LookUp("attributes", &attrs)) {
+      LOG(ERROR) << "[makePhysicalEntity] - Malformed attribute table in user "
+                    "callback; ignoring.";
+    }
+  }
+
+  lua::Push(L,
+            emitter_.AddPhysicalEntity(i, j, width, depth, height, std::move(classname),
+                               std::vector<std::pair<std::string, std::string>>(
+                                   attrs.begin(), attrs.end())));
+  return 1;
+}
+
 lua::NResultsOr LuaSnippetEmitter::MakeSpawnPoint(lua_State* L) {
   lua::TableRef table;
   if (!lua::Read(L, 2, &table)) {

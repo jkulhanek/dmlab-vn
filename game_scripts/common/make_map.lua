@@ -48,7 +48,7 @@ function make_map.makeMap(kwargs)
       callback = kwargs.callback or function(i, j, c, maker)
         local pickup = kwargs.pickups and kwargs.pickups[c] or PICKUPS[c]
         if pickup then
-          return maker:makeEntity{
+          return maker:addEntity{
               i = i,
               j = j,
               classname = pickup,

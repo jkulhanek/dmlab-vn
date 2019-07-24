@@ -84,7 +84,7 @@ function factory.createLevelApi(kwargs)
         entityLayer = api._asciiMap,
         mapName = MAP_NAME,
         skyboxTextureName = kwargs.skyboxTextureName,
-        ceilingHeight = 10.0,
+        ceilingScale = 10.0,
         drawDefaultLayout = false,
         theme = themes.fromTextureSet{textureSet = texture_sets.MISHMASH},
         cellSize = kwargs.cellSize,

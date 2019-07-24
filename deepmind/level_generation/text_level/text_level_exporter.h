@@ -81,6 +81,8 @@ class TextLevelExporter {
 
   void AddGlassColumn(double x, double y, int height);
 
+  void AddGlassBox(double x, double y, double width, double depth, int height);
+
   void Add(map_builder::Entity entity) {
     builder_.AddEntity(std::move(entity));
   }

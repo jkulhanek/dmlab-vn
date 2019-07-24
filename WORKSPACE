@@ -1,4 +1,6 @@
 workspace(name = "org_deepmind_lab")
+BAZEL_VERSION = "0.19.2"
+BAZEL_VERSION_SHA = "11234cce4f6bdc62c3ac688f41c7b5c178eecb6f7e2c4ba0bcf00ba8565b1d19"
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 

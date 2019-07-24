@@ -117,7 +117,8 @@ void TranslateCoreLevel(const GridMaze& maze, TextLevelExporter* exporter,
                          cell.variation);
 
       if ((maze.height() - i - 1 + j) % kLightSpacing == 0) {
-        exporter->Add(exporter->MakeLight({(x + 0.5), (y + 0.5), kLightZOffset},
+        exporter->Add(exporter->MakeLight({(x + 0.5), (y + 0.5), kLightZOffset * 
+          level_settings->ceiling_height * level_settings->ceiling_scale},
                                           light_dist(*rng)));
       }
     });
@@ -355,6 +356,19 @@ class MapSnippetEmitterImpl : public MapSnippetEmitter {
     exporter_->AddGlassColumn(j, maze_.height() - i - 1, height);
   }
 
+  std::string AddPhysicalEntity(
+      double i, double j, double width, double depth,
+      double height, std::string class_name,
+      const std::vector<std::pair<std::string, std::string>>& attributes) const {
+        double x = j + 0.5;
+        double y = (maze_.height() - i - 1) + 0.5;
+    exporter_->AddGlassBox(j, maze_.height() - i - 1, width, depth, height);
+    return exporter_
+        ->MakeEntity(Eigen::Vector3d({j + 0.5, (maze_.height() - i - 1) + 0.5, -0.01}),
+                     std::move(class_name), attributes)
+        .ToString();
+  }
+
  private:
   friend class MapSnippetEmitter;
 
@@ -399,6 +413,14 @@ std::string MapSnippetEmitter::AddGlassColumn(double i, double j,
                                               double height) const {
   static_cast<const MapSnippetEmitterImpl*>(this)->AddGlassColumn(i, j, height);
   return "";
+}
+
+std::string MapSnippetEmitter::AddPhysicalEntity(
+    double i, double j, double width, double depth,
+    double height, std::string class_name,
+    const std::vector<std::pair<std::string, std::string>>& attributes) const {
+  return static_cast<const MapSnippetEmitterImpl*>(this)->AddPhysicalEntity(
+      i, j, width, depth, height, std::move(class_name), attributes);
 }
 
 std::string TranslateTextLevel(std::string level_text,

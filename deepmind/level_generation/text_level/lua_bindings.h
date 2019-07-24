@@ -87,6 +87,7 @@ class LuaSnippetEmitter : public lua::Class<LuaSnippetEmitter> {
         {"makeFenceDoor", Member<&LuaSnippetEmitter::MakeFenceDoor>},
         {"addPlatform", Member<&LuaSnippetEmitter::AddPlatform>},
         {"addGlassColumn", Member<&LuaSnippetEmitter::AddGlassColumn>},
+        {"makePhysicalEntity", Member<&LuaSnippetEmitter::MakePhysicalEntity>},
     };
     Class::Register(L, methods);
   }
@@ -131,6 +132,8 @@ class LuaSnippetEmitter : public lua::Class<LuaSnippetEmitter> {
   // Adds an invisible column all the way from the ground to the given height in
   // cell (i, j).
   lua::NResultsOr AddGlassColumn(lua_State* L);
+
+  lua::NResultsOr MakePhysicalEntity(lua_State* L);
 
  private:
   const MapSnippetEmitter& emitter_;

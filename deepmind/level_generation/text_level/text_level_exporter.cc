@@ -107,12 +107,14 @@ void TextLevelExporter::AddWall(const Eigen::Vector3d& a,
         MapBuilderTexture(settings_->theme->wall(group_number, direction));
   }
 
+  Eigen::Vector3d multiplier(settings_->cell_size, settings_->cell_size, bounding_box_size_.z() * settings_->cell_size);
+
   builder_.mutable_world_entity()->add_brush(
       map_builder::brush_util::CreateBoxBrush(
-          a * settings_->cell_size +
+          a.cwiseProduct(multiplier) +
               Eigen::Vector3d::Zero().cwiseMin(interior_direction) /
                   map_builder::kWorldToGameUnits,
-          b * settings_->cell_size +
+          b.cwiseProduct(multiplier) +
               Eigen::Vector3d::Zero().cwiseMax(interior_direction) /
                   map_builder::kWorldToGameUnits,
           wall_textures[group_number]));
@@ -271,6 +273,14 @@ void TextLevelExporter::AddPlatform(double x, double y, int height) {
 void TextLevelExporter::AddGlassColumn(double x, double y, int height) {
   Eigen::Vector3d a(x, y, 0);
   Eigen::Vector3d b(x + 1.0, y + 1.0, height * kHeightScale);
+  builder_.mutable_world_entity()->add_brush(
+      map_builder::brush_util::CreateBoxBrush(
+          a * settings_->cell_size, b * settings_->cell_size, glass_texture_));
+}
+
+void TextLevelExporter::AddGlassBox(double x, double y, double width, double depth, int height) {
+  Eigen::Vector3d a(x, y, 0);
+  Eigen::Vector3d b(x + width / settings_->cell_size, y + depth / settings_->cell_size, height * kHeightScale);
   builder_.mutable_world_entity()->add_brush(
       map_builder::brush_util::CreateBoxBrush(
           a * settings_->cell_size, b * settings_->cell_size, glass_texture_));
