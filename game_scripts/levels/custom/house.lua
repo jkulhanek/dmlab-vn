@@ -10,21 +10,22 @@ local themes = require 'themes.themes'
 local api = {}
 
 
-local CELL_SIZE = 100.0
-local CEILING_HEIGHT = 1.2
+local CELL_SIZE = 64.0
+local CEILING_HEIGHT = 1.8
 local MAP_ENTITIES = [[
-*****
-*P  *
-*   *
-* A *
-*****
+******
+*P   *
+*    *
+*    *
+*AAAA*
+******
 ]]
 
 local OBJECTS = {
     A = {
         name = 'apple_reward',
         width = CELL_SIZE * 0.7 / 32.0,
-        depth = CELL_SIZE * 0.7 / 32.0,
+        depth = CELL_SIZE * 0.6 / 32.0,
     },
     G = {
         name = 'goal',
@@ -72,6 +73,7 @@ function api:init(params)
                width = pickup.width,
                height = CEILING_HEIGHT * 2 * 100.0/32.0,
                depth = pickup.depth,
+               align = j - 1,
                classname = pickup.name,
             }
           end

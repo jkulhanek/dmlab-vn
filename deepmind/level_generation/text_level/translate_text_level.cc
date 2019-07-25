@@ -22,6 +22,7 @@
 #include <iterator>
 #include <utility>
 #include <vector>
+#include <string>
 
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_join.h"
@@ -358,14 +359,41 @@ class MapSnippetEmitterImpl : public MapSnippetEmitter {
 
   std::string AddPhysicalEntity(
       double i, double j, double width, double depth,
-      double height, std::string class_name,
+      double height, int align, std::string class_name,
       const std::vector<std::pair<std::string, std::string>>& attributes) const {
         double x = j + 0.5;
         double y = (maze_.height() - i - 1) + 0.5;
-    exporter_->AddGlassBox(j, maze_.height() - i - 1, width, depth, height);
+    Eigen::Vector2d center(x, y);
+    auto& settings_ = exporter_->GetSettings();
+    int rotation = 0;
+    std::swap(width, depth);
+    switch(align) {
+      case 0:
+        rotation = 0;
+        center.x() = x - 0.5 + width / settings_.cell_size / 2;
+        break;
+      case 1:
+        std::swap(width, depth);
+        rotation = 90;
+        center.y() = y - 0.5 + width / settings_.cell_size / 2;
+        break;
+      case 2:
+        rotation = 180;
+        center.x() = x + 0.5 - width / settings_.cell_size / 2;
+        break;
+      case 3:
+        std::swap(width, depth);
+        rotation = 270;
+        center.y() = y + 0.5 - width / settings_.cell_size / 2;
+        break;
+    }
+
+    exporter_->AddGlassBox(center.x(), center.y(), width, depth, height);
+    std::vector<std::pair<std::string, std::string>> newAttributes(attributes);
+    newAttributes.push_back(std::pair<std::string, std::string>("angle", std::to_string(rotation)));
     return exporter_
-        ->MakeEntity(Eigen::Vector3d({j + 0.5, (maze_.height() - i - 1) + 0.5, -0.01}),
-                     std::move(class_name), attributes)
+        ->MakeEntity(Eigen::Vector3d({center.x(), center.y(), -0.01}),
+                     std::move(class_name), newAttributes)
         .ToString();
   }
 
@@ -417,10 +445,10 @@ std::string MapSnippetEmitter::AddGlassColumn(double i, double j,
 
 std::string MapSnippetEmitter::AddPhysicalEntity(
     double i, double j, double width, double depth,
-    double height, std::string class_name,
+    double height, int align, std::string class_name,
     const std::vector<std::pair<std::string, std::string>>& attributes) const {
   return static_cast<const MapSnippetEmitterImpl*>(this)->AddPhysicalEntity(
-      i, j, width, depth, height, std::move(class_name), attributes);
+      i, j, width, depth, height, align, std::move(class_name), attributes);
 }
 
 std::string TranslateTextLevel(std::string level_text,

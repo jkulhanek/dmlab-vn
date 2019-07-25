@@ -279,11 +279,13 @@ void TextLevelExporter::AddGlassColumn(double x, double y, int height) {
 }
 
 void TextLevelExporter::AddGlassBox(double x, double y, double width, double depth, int height) {
-  Eigen::Vector3d a(x, y, 0);
-  Eigen::Vector3d b(x + width / settings_->cell_size, y + depth / settings_->cell_size, height * kHeightScale);
+
+  Eigen::Vector3d center(x, y, height * kHeightScale / 2);
+  Eigen::Vector3d stretch(width / settings_->cell_size, depth / settings_->cell_size,height * kHeightScale);
+  stretch *= 0.5;
   builder_.mutable_world_entity()->add_brush(
       map_builder::brush_util::CreateBoxBrush(
-          a * settings_->cell_size, b * settings_->cell_size, glass_texture_));
+          (center - stretch) * settings_->cell_size, (center + stretch) * settings_->cell_size, glass_texture_));
 }
 
 map_builder::Entity TextLevelExporter::MakeLight(

@@ -85,7 +85,7 @@ class MapSnippetEmitter {
   // Emits physical entity
   std::string AddPhysicalEntity(
     double i, double j, double width, double depth,
-    double height, std::string class_name,
+    double height, int align, std::string class_name,
     const std::vector<std::pair<std::string, std::string>>& attributes) const;
 
  protected:

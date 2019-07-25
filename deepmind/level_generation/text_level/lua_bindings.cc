@@ -136,6 +136,7 @@ lua::NResultsOr LuaSnippetEmitter::MakePhysicalEntity(lua_State* L) {
   }
 
   double i, j, width, depth, height;
+  int align = -1;
   std::string classname;
   absl::flat_hash_map<std::string, std::string> attrs;
 
@@ -147,6 +148,8 @@ lua::NResultsOr LuaSnippetEmitter::MakePhysicalEntity(lua_State* L) {
     return "[makePhysicalEntity] - Invalid arguments";
   }
 
+  table.LookUp("align", &align);
+
   if (table.Contains("attributes")) {
     if (!table.LookUp("attributes", &attrs)) {
       LOG(ERROR) << "[makePhysicalEntity] - Malformed attribute table in user "
@@ -155,7 +158,7 @@ lua::NResultsOr LuaSnippetEmitter::MakePhysicalEntity(lua_State* L) {
   }
 
   lua::Push(L,
-            emitter_.AddPhysicalEntity(i, j, width, depth, height, std::move(classname),
+            emitter_.AddPhysicalEntity(i, j, width, depth, height, align, std::move(classname),
                                std::vector<std::pair<std::string, std::string>>(
                                    attrs.begin(), attrs.end())));
   return 1;
