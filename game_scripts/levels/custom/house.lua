@@ -1,6 +1,8 @@
 local make_map = require 'common.make_map'
 local map_maker = require 'dmlab.system.map_maker'
+local maze_generation = require 'dmlab.system.maze_generation'
 local pickups = require 'common.pickups'
+local hit_goal_decorator = require 'custom.hit_goal_decorator'
 local custom_observations = require 'decorators.custom_observations'
 local pickups_spawn = require 'dmlab.system.pickups_spawn'
 local game = require 'dmlab.system.game'
@@ -9,16 +11,21 @@ local houseTs = require 'custom.house_theme'
 local themes = require 'themes.themes'
 local api = {}
 
+local kwargs = {
+  negativeGoalReward = -1.0,
+  positiveGoalReward = 1.0
+}
 
 local CELL_SIZE = 64.0
 local CEILING_HEIGHT = 1.8
 local MAP_ENTITIES = [[
-******
-*P   *
-*    *
-*    *
-*AAAA*
-******
+*******
+*PA   *
+*     *
+*     *
+*  A  *
+*     *
+*******
 ]]
 
 local OBJECTS = {
@@ -45,6 +52,24 @@ local PICKUPS = {
     }
 }
 
+function api:_getEntityAlign(i, j, width, height)
+  if i == 1 then
+    return 3
+  elseif i == height - 2 then
+    return 1
+  elseif j == 1 then
+    return 0
+  elseif j == width - 2 then
+    return 2
+  end
+end
+
+function getPhysicalPosition(i, j, maze_height)
+  x = j + 0.5;
+  y = (maze_height - i - 1) + 0.5;
+  return { x * CELL_SIZE, y * CELL_SIZE }
+end
+
 function api:init(params)
     make_map.seedRng(1)
 
@@ -55,6 +80,12 @@ function api:init(params)
         floorModelFrequency = 0,
     }
 
+    local maze = maze_generation.mazeGeneration{entity = MAP_ENTITIES}
+    local width, height = maze:size()
+    local currentEntities = {}
+    local goalRewards = {}
+    local finalGoals = {}
+    
     map_maker:mapFromTextLevel{
         entityLayer = MAP_ENTITIES,
         variationsLayer = nil,
@@ -67,20 +98,29 @@ function api:init(params)
         callback = function(i, j, c, maker)
           local pickup = OBJECTS[c]
           if pickup then
+            currentEntities[#currentEntities + 1] = getPhysicalPosition(i, j, height)
+            goalRewards[#goalRewards + 1] = kwargs.negativeGoalReward
+            finalGoals[#goalRewards] = true
             return maker:makePhysicalEntity{
                i = i,
                j = j,
                width = pickup.width,
                height = CEILING_HEIGHT * 2 * 100.0/32.0,
                depth = pickup.depth,
-               align = j - 1,
+               align = self:_getEntityAlign(i, j, width, height),
                classname = pickup.name,
             }
           end
         end
     }
 
+    api:updateGoals(currentEntities, finalGoals)
     api._map = mapName
+    self._goalRewards = goalRewards
+end
+
+function api:calculateBonus(goalId)
+  return self._goalRewards[goalId]
 end
 
 function api:nextMap()
@@ -133,5 +173,8 @@ end
 
 timeout.decorate(api, 60 * 60)
 custom_observations.decorate(api)
+hit_goal_decorator(api, {
+  cellSize = CELL_SIZE
+})
 
 return api
