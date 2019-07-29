@@ -30,10 +30,8 @@ end
 
 
 local function decorator(api, kwargs)
-  local modifyControl = api.modifyControl
   local hittingGoal = false
   local currentGoals = {}
-  local currentFinalGoals = {}
   local config = {
     maxDistance = kwargs.maxDistance or 0.7,
     cellSize = kwargs.cellSize,
@@ -46,6 +44,7 @@ local function decorator(api, kwargs)
     end
   end
 
+  local modifyControl = api.modifyControl
   function api:modifyControl(actions)
     if actions.crouchJump > 0 then
       actions.crouchJump = 0
@@ -53,9 +52,9 @@ local function decorator(api, kwargs)
         local maxScore = nil
         local isFinal = false
         for i,goal in ipairs(currentGoals) do
-          if isHittingGoal(game:playerInfo(), goal, config) then
+          if isHittingGoal(game:playerInfo(), goal.pos, config) then
             maxScore = maxScore and math.max(maxScore, api:calculateBonus(i)) or api:calculateBonus(i)
-            if currentFinalGoals[i] then
+            if goal.final then
               isFinal = true
             end
           end
@@ -75,10 +74,9 @@ local function decorator(api, kwargs)
   end
 
   local updateGoals = api.updateGoals
-  function api:updateGoals(goals, finalGoals)
+  function api:updateGoals(goals)
     currentGoals = goals
-    currentFinalGoals = finalGoals or {}    
-    return updateGoals and updateGoals(self, goals, finalGoals) or nil
+    return updateGoals and updateGoals(self, goals) or nil
   end
 
   local nextMap = api.nextMap
