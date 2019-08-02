@@ -15,48 +15,83 @@ local tuple = require 'common.tuple'
 local api = {}
 
 local kwargs = {
-  negativeGoalReward = -1.0,
-  positiveGoalReward = 1.0,
-  finalGoalReward = 1.0,
+  negativeGoalReward = -1,
+  positiveGoalReward = 10,
+  finalGoalReward = 10,
   entityPercentage = 0.7
 }
 
 local CELL_SIZE = 64.0
-local CEILING_HEIGHT = 1.8
+local CEILING_HEIGHT = 2.2
 local MAP_ENTITIES = [[
 *******
-*P    *
-*     *
-*     *
-*     *
-*     *
-*     *
+*C333P*
+*0   2*
+*0   2*
+*0   2*
+*0   2*
+*C111C*
 *******
 ]]
 
 local OBJECTS = {
-  apple_reward = {
-        name = 'apple_reward',
-        width = CELL_SIZE * 0.7 / 32.0,
-        depth = CELL_SIZE * 0.6 / 32.0,
-    },
-    G = {
-        name = 'goal',
-        width = 100.0 / 32.0,
-        depth = 100.0 / 32.0,
-    },
+  meuble_chevet = {
+    width = CELL_SIZE * 0.7 / 32.0,
+    depth = CELL_SIZE * 0.6 / 32.0,
+    probabilityFactor = 1.0,
+  },
+  chair = {
+    width = CELL_SIZE * 0.9 / 32.0,
+    depth = CELL_SIZE * 0.9 / 32.0,
+    probabilityFactor = 1.0,
+  },
+  chair2 = {
+    width = CELL_SIZE * 0.9 / 32.0,
+    depth = CELL_SIZE * 0.9 / 32.0,
+    probabilityFactor = 1.0,
+  },
+  shoe_cabinet = {
+    width = CELL_SIZE * 0.7 / 32.0,
+    depth = CELL_SIZE * 0.6 / 32.0,
+    probabilityFactor = 1.0,
+  },
+  coat_stand = {
+    width = CELL_SIZE * 0.4 / 32.0,
+    depth = CELL_SIZE * 0.4 / 32.0,
+    probabilityFactor = 1.0,
+  },
+  cartboard_box = {
+    width = CELL_SIZE * 0.7 / 32.0,
+    depth = CELL_SIZE * 0.6 / 32.0,
+    probabilityFactor = 1.0,
+  },
+  black_bookcase = {
+    width = CELL_SIZE * 0.7 / 32.0,
+    depth = CELL_SIZE * 0.6 / 32.0,
+    probabilityFactor = 1.0,
+  },
 }
 
-local PICKUPS = {
-    apple_reward = {
-        name = 'Apple',
-        classname = 'apple_reward',
-        model = 'models/apple.md3',
-        quantity = 1,
-        type = pickups.type.REWARD,
-        moveType = pickups.moveType.STATIC
-    }
-}
+local objectSampleProbabilities = {}
+local totalPSum = 0.0
+for key, val in pairs(OBJECTS) do
+  local pfactor = val.probabilityFactor or 1.0
+  totalPSum = totalPSum + pfactor
+  objectSampleProbabilities[#objectSampleProbabilities + 1] = {pfactor, key}
+end
+for i=1,#objectSampleProbabilities do
+  objectSampleProbabilities[i][1] = objectSampleProbabilities[i][1] / totalPSum
+end
+
+function sampleObject(randomValue)
+  local totalValue = 0.0
+  for i=1,#objectSampleProbabilities do
+    totalValue = totalValue + objectSampleProbabilities[i][1]
+    if randomValue <= totalValue then
+      return objectSampleProbabilities[i][2]
+    end
+  end
+end
 
 function api:_getEntityAlign(i, j, width, height)
   if i == 1 then
@@ -96,35 +131,40 @@ function api:_generateEntitiesAndMaze()
   local width, height = maze:size()
   local currentEntities = {}
 
-  local entityLocations = {{3,3}}
-  local spawnLocations = {{2,2}}
-  -- for i = 1, (width - 2) do
-  --   for j = 1, (height - 2) do
-  --     local isNearWall = i == 1 or i == (width - 2) or j == 1 or j == (height - 2)
-  --     local isCorner = (i == 1 and j == 1) or (i == (width - 2) and j == (height - 2)) or
-  --                     (i == 1 and j == (height - 2)) or (i == 1 and j == (height - 2))
-  --     if not isCorner then
-  --       if isNearWall then        
-  --         entityLocations[#entityLocations + 1] = {i, j}
-  --       elseif maze:getEntityCell(i, j) ~= "*" then
-  --         spawnLocations[#spawnLocations + 1] = {i, j}
-  --       end
-  --     end
-  --   end
-  -- end
-  local entityCount = 1
-  -- local entityCount = random:uniformInt(math.max(1, 
-  --   math.floor(kwargs.entityPercentage * #entityLocations  - 3)),
-  --   math.min(#entityLocations, math.floor(kwargs.entityPercentage * #entityLocations  + 3)))
+  local entityLocations = {}
+  local entityOrientations = {}
+  local spawnLocations = {}
+
+  for i = 1, (width - 2) do
+    for j = 1, (height - 2) do
+      local c = maze:getEntityCell(i + 1, j + 1)
+      local orientation = tonumber(c)
+      local isNearWall = orientation ~= nil
+      local isCorner = c == "C" or c == "P"
+      if not isCorner then
+        if isNearWall then        
+          entityLocations[#entityLocations + 1] = {i, j}
+          entityOrientations[#entityLocations] = orientation
+        elseif c ~= "*" then
+          spawnLocations[#spawnLocations + 1] = {i, j}
+        end
+      end
+    end
+  end
+
+  local entityCount = random:uniformInt(math.max(1, 
+    math.floor(kwargs.entityPercentage * #entityLocations  - 3)),
+    math.min(#entityLocations, math.floor(kwargs.entityPercentage * #entityLocations  + 3)))
   local placeGenerator = random:shuffledIndexGenerator(#entityLocations)
 
-  local finalGoalPos = entityLocations[placeGenerator()]
+  local finalGoalIndex = placeGenerator()
+  local finalGoalPos = entityLocations[finalGoalIndex]
   local finalGoal = {
     gridPos = finalGoalPos,
     pos = self:_getPhysicalPosition(finalGoalPos[1], finalGoalPos[2], width),
     reward = kwargs.finalGoalReward,
-    type = "apple_reward",
-    orientation = self:_getEntityAlign(finalGoalPos[1], finalGoalPos[2], width, height),
+    type = sampleObject(random:uniformReal(0, 1)),
+    orientation = entityOrientations[finalGoalIndex],
     final = true
   }
   finalGoal.orientationVector = getOrientationVector(finalGoal.orientation)
@@ -133,14 +173,15 @@ function api:_generateEntitiesAndMaze()
   local indexedEntities = {}
   indexedEntities[tuple(entities[#entities].gridPos[1], entities[#entities].gridPos[2])] = entities[#entities]  
   for i = 1,(entityCount - 1) do
-    local pos = entityLocations[placeGenerator()]
+    local index = placeGenerator()
+    local pos = entityLocations[index]
 
     entities[#entities + 1] = {
       gridPos = pos,
       pos = self:_getPhysicalPosition(pos[1], pos[2], width),
       reward = kwargs.negativeGoalReward,
-      type = "apple_reward",
-      orientation = self:_getEntityAlign(pos[1], pos[2], width, height),
+      type = sampleObject(random:uniformReal(0, 1)),
+      orientation = entityOrientations[index],
       final = false
     }
 
@@ -161,9 +202,24 @@ function api:_generateEntitiesAndMaze()
   }
 end
 
-function api:init(params)
-    make_map.seedRng(1)
-    random:seed(4)
+function api:_initializePickups(objects)
+  self.pickups = {}
+  for key, obj in pairs(objects) do
+    self.pickups[key] = {
+      name = key,
+      classname = key,
+      model = 'models/custom/'..key..'.md3',
+      quantity = 1,
+      type = pickups.type.REWARD,
+      moveType = pickups.moveType.STATIC
+    }
+  end
+end
+
+function api:start(episode, seed, params)
+    random:seed(seed)
+    self:_initializePickups(OBJECTS)
+
     local mapName = 'house_room'
     local theme = themes.fromTextureSet{
         textureSet = houseTs,
@@ -208,7 +264,12 @@ function api:init(params)
 end
 
 function api:calculateBonus(goalId)
-  return self._currentEntities[goalId].reward
+  if self._currentEntities[goalId].isCollected then
+    return 0.0
+  else
+    self._currentEntities[goalId].isCollected = true
+    return self._currentEntities[goalId].reward
+  end
 end
 
 function api:nextMap()
@@ -230,12 +291,12 @@ function api:updateSpawnVars(spawnVars)
     return self._newSpawnVarsPlayerStart
   end
 
-  if PICKUPS[spawnVars.classname] then
+  if self.pickups[spawnVars.classname] then
     spawnVars.id = "1"
     spawnVars.spawnflags = "1"
   end
 
-  if (PICKUPS[spawnVars.classname] and PICKUPS[spawnVars.classname:sub(0, -6)]) then
+  if (self.pickups[spawnVars.classname] and self.pickups[spawnVars.classname:sub(0, -6)]) then
     -- is goal
     spawnVars.id = "2"
     spawnVars.spawnflags = "1"
@@ -251,10 +312,10 @@ function api:canPickup(id, playerId)
 end
   -- Create apple explicitly
   function api:createPickup(classname)
-    if (classname:len() > 5 and PICKUPS[classname:sub(0, -6)]) then
+    if (classname:len() > 5 and self.pickups[classname:sub(0, -6)]) then
         -- is goal
         local goalPickup = {}
-        for key, value in pairs(PICKUPS[classname:sub(0, -6)]) do
+        for key, value in pairs(self.pickups[classname:sub(0, -6)]) do
             goalPickup[key] = value
         end
         
@@ -262,7 +323,7 @@ end
         goalPickup.type = pickups.type.GOAL
         return goalPickup
     end
-    return PICKUPS[classname]
+    return self.pickups[classname]
   end
 
 
