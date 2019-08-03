@@ -22,7 +22,7 @@ cc_library(
     includes = select(
         {
             "@bazel_tools//tools/python:PY2": ["include/python2.7"],
-            "@bazel_tools//tools/python:PY3": ["include/python3.6],
+            "@bazel_tools//tools/python:PY3": ["include/python3.6"],
         },
         no_match_error = "Internal error, Python version should be one of PY2 or PY3",
     ),
