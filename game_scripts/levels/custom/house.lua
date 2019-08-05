@@ -16,9 +16,10 @@ local api = {}
 
 local kwargs = {
   negativeGoalReward = -1,
-  positiveGoalReward = 10,
+  positiveGoalReward = 0,
   finalGoalReward = 10,
-  entityPercentage = 0.7
+  entityPercentage = 0.7,
+  iterationsWithSameMap = 2 -- -1 for no repetitions
 }
 
 local CELL_SIZE = 64.0
@@ -56,8 +57,8 @@ local OBJECTS = {
     probabilityFactor = 1.0,
   },
   coat_stand = {
-    width = CELL_SIZE * 0.4 / 32.0,
-    depth = CELL_SIZE * 0.4 / 32.0,
+    width = CELL_SIZE * 0.7 / 32.0,
+    depth = CELL_SIZE * 0.6 / 32.0,
     probabilityFactor = 1.0,
   },
   cartboard_box = {
@@ -108,6 +109,21 @@ function api:_getEntityAlign(i, j, width, height)
   return 1
 end
 
+local function applyOrientation(pos, object, orientation)
+  local x = pos[1]
+  local y = pos[2]
+  if orientation == 0 then
+    x = x - 0.5 + object.depth / CELL_SIZE / 2;
+  elseif orientation == 1 then
+    y = y - 0.5 + object.width / CELL_SIZE / 2;
+  elseif orientation == 2 then
+    x = x + 0.5 - object.depth / CELL_SIZE / 2;
+  elseif orientation == 3 then
+    y = y + 0.5 - object.width / CELL_SIZE / 2;
+  end
+  return {x, y, pos[3]}
+end
+
 function getOrientationVector(orientation)
   if orientation == 3 then
     return {0, -1, 0}
@@ -124,6 +140,24 @@ function api:_getPhysicalPosition(i, j, width)
   x = j + 0.5;
   y = ((width or self._maze_width) - i - 1) + 0.5;
   return { x * CELL_SIZE, y * CELL_SIZE }
+end
+
+function api:_resetGoal()
+  local finalGoalIndex = random:uniformInt(1, #self._currentEntities)
+  local finalGoal = self._currentEntities[finalGoalIndex]
+  for i, entity in ipairs(self._currentEntities) do
+    entity.isCollected = nil
+    if i == finalGoalIndex then
+      entity.reward = kwargs.finalGoalReward
+      entity.final = true
+    elseif entity.type == finalGoal.type then
+      entity.reward = kwargs.positiveGoalReward
+      entity.final = false
+    else
+      entity.reward = kwargs.negativeGoalReward
+      entity.final = false
+    end
+  end
 end
 
 function api:_generateEntitiesAndMaze()
@@ -157,35 +191,22 @@ function api:_generateEntitiesAndMaze()
     math.min(#entityLocations, math.floor(kwargs.entityPercentage * #entityLocations  + 3)))
   local placeGenerator = random:shuffledIndexGenerator(#entityLocations)
 
-  local finalGoalIndex = placeGenerator()
-  local finalGoalPos = entityLocations[finalGoalIndex]
-  local finalGoal = {
-    gridPos = finalGoalPos,
-    pos = self:_getPhysicalPosition(finalGoalPos[1], finalGoalPos[2], width),
-    reward = kwargs.finalGoalReward,
-    type = sampleObject(random:uniformReal(0, 1)),
-    orientation = entityOrientations[finalGoalIndex],
-    final = true
-  }
-  finalGoal.orientationVector = getOrientationVector(finalGoal.orientation)
-
-  local entities = { finalGoal }
-  local indexedEntities = {}
-  indexedEntities[tuple(entities[#entities].gridPos[1], entities[#entities].gridPos[2])] = entities[#entities]  
-  for i = 1,(entityCount - 1) do
+  local entities = {}
+  local indexedEntities = {} 
+  for i = 1,entityCount do
     local index = placeGenerator()
     local pos = entityLocations[index]
-
-    entities[#entities + 1] = {
+    local type = sampleObject(random:uniformReal(0, 1))
+    local entity = {
       gridPos = pos,
       pos = self:_getPhysicalPosition(pos[1], pos[2], width),
-      reward = kwargs.negativeGoalReward,
-      type = sampleObject(random:uniformReal(0, 1)),
+      type = type,
       orientation = entityOrientations[index],
-      final = false
     }
-
-    indexedEntities[tuple(entities[#entities].gridPos[1], entities[#entities].gridPos[2])] = entities[#entities]
+    entity.truePos = applyOrientation(entity.pos, OBJECTS[entity.type], entity.orientation)
+    entity.orientationVector = getOrientationVector(entity.orientation)
+    entities[#entities + 1] = entity
+    indexedEntities[tuple(entity.gridPos[1], entity.gridPos[2])] = entity
   end
 
   local i = placeGenerator()
@@ -216,51 +237,65 @@ function api:_initializePickups(objects)
   end
 end
 
-function api:start(episode, seed, params)
-    random:seed(seed)
-    self:_initializePickups(OBJECTS)
+function api:_generateMap()
+  self._iteration = self._iteration and (self._iteration + 1) or 1
+  local generateNewMap = false
+  if not self._map then
+    generateNewMap = true
+  elseif kwargs.iterationsWithSameMap > 0 and (self._iteration % kwargs.iterationsWithSameMap) == 1 then
+    generateNewMap = true
+  end
 
-    local mapName = 'house_room'
+  if generateNewMap then
+    local mapName = 'house_room_' .. self._seedParameter .. '_' .. self._iteration
     local theme = themes.fromTextureSet{
-        textureSet = houseTs,
-        decalFrequency = 0,
-        floorModelFrequency = 0,
+      textureSet = houseTs,
+      decalFrequency = 0,
+      floorModelFrequency = 0,
     }
 
     local entitiesResult = self:_generateEntitiesAndMaze()
     local width, height = entitiesResult.maze:size()
     map_maker:mapFromTextLevel{
-        entityLayer = MAP_ENTITIES,
-        variationsLayer = nil,
-        mapName = mapName,
-        allowBots = false,
-        skyboxTextureName = nil,
-        theme = theme,
-        cellSize = CELL_SIZE,
-        ceilingScale = CEILING_HEIGHT,
-        callback = function(i, j, c, maker)
-          local entity = entitiesResult.indexedEntities[tuple(i, j)]
-          if entity then
-            local object = OBJECTS[entity.type]
-            local e= maker:makePhysicalEntity{
-               i = i,
-               j = j,
-               width = object.width,
-               height = CEILING_HEIGHT * 2 * 100.0/32.0,
-               depth = object.depth,
-               align = entity.orientation,
-               classname = entity.type,
-            }
-            return e         
-          end
+      entityLayer = MAP_ENTITIES,
+      variationsLayer = nil,
+      mapName = mapName,
+      allowBots = false,
+      skyboxTextureName = nil,
+      theme = theme,
+      cellSize = CELL_SIZE,
+      ceilingScale = CEILING_HEIGHT,
+      callback = function(i, j, c, maker)
+        local entity = entitiesResult.indexedEntities[tuple(i, j)]
+        if entity then
+          local object = OBJECTS[entity.type]
+          local e= maker:makePhysicalEntity{
+             i = i,
+             j = j,
+             width = object.width,
+             height = CEILING_HEIGHT * 2 * 100.0/32.0,
+             depth = object.depth,
+             align = entity.orientation,
+             classname = entity.type,
+          }
+          return e         
         end
+      end
     }
 
-    api:updateGoals(entitiesResult.entities)
     self._currentEntities = entitiesResult.entities
     self._allSpawnLocations = entitiesResult.spawnLocations
     self._maze_width = width
-    api._map = mapName
+    self._map = mapName
+  end
+end
+
+function api:start(episode, seed, params)
+  self._seedParameter = seed
+  self:_initializePickups(OBJECTS)
+  random:seed(seed)
+    
+  self:_generateMap()
 end
 
 function api:calculateBonus(goalId)
@@ -273,6 +308,7 @@ function api:calculateBonus(goalId)
 end
 
 function api:nextMap()
+  self:_generateMap()
   local spawnLocation = api._allSpawnLocations[
                                  random:uniformInt(1, #api._allSpawnLocations)]
   spawnLocation = self:_getPhysicalPosition(spawnLocation[1], spawnLocation[2])
@@ -282,6 +318,9 @@ function api:nextMap()
     angle = '' .. (90 * random:uniformInt(0, 3))
   }
 
+  -- Select new goal
+  self:_resetGoal()
+  self:updateGoals(self._currentEntities)
   return self._map
 end
 

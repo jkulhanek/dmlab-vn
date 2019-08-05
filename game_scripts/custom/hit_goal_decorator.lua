@@ -35,7 +35,7 @@ local function decorator(api, kwargs)
   local config = {
     maxDistance = kwargs.maxDistance or 0.7,
     cellSize = kwargs.cellSize,
-    maxAngle = kwargs.maxAngle or 30,
+    maxAngle = kwargs.maxAngle or 60,
   }
 
   if not api.calculateBonus then
@@ -52,7 +52,7 @@ local function decorator(api, kwargs)
         local maxScore = nil
         local isFinal = false
         for i,goal in ipairs(currentGoals) do
-          if isHittingGoal(game:playerInfo(), goal.pos, config) then
+          if isHittingGoal(game:playerInfo(), goal.truePos, config) then
             maxScore = maxScore and math.max(maxScore, api:calculateBonus(i)) or api:calculateBonus(i)
             if goal.final then
               isFinal = true
