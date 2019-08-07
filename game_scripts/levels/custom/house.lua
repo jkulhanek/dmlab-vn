@@ -19,7 +19,7 @@ local kwargs = {
   positiveGoalReward = 0,
   finalGoalReward = 10,
   entityPercentage = 0.7,
-  iterationsWithSameMap = 2 -- -1 for no repetitions
+  iterationsWithSameMap = 50 -- -1 for no repetitions
 }
 
 local CELL_SIZE = 64.0
@@ -57,7 +57,7 @@ local OBJECTS = {
     probabilityFactor = 1.0,
   },
   coat_stand = {
-    width = CELL_SIZE * 0.7 / 32.0,
+    width = CELL_SIZE * 0.6 / 32.0,
     depth = CELL_SIZE * 0.6 / 32.0,
     probabilityFactor = 1.0,
   },
