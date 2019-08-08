@@ -240,7 +240,7 @@ cc_library(
         "-DHAVE_CONFIG_H",
         "-DPCRE_STATIC",
     ],
-    includes = ["."],
+    includes = [".", "glib"],
     visibility = ["//visibility:public"],
     deps = [":charset"],
 )

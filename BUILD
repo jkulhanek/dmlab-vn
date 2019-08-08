@@ -75,8 +75,10 @@ cc_binary(
         CODE_DIR + "/tools/lcc/src/config.h",
         CODE_DIR + "/tools/lcc/src/token.h",
     ] + glob([CODE_DIR + "/tools/lcc/src/*.c"]),
+    includes = [
+        CODE_DIR + "/tools/lcc/src",
+    ],
     copts = [
-        "-I" + CODE_DIR + "/tools/lcc/src",
         "-w",
     ],
 )
@@ -234,7 +236,9 @@ genrule(
     ],
     outs = [CODE_DIR + "/" + asm_source + ".asm" for asm_source in ASM_SOURCES],
     cmd = "for FILE in $(locations :qvm_src); do " +
-          "  $(location :q3lcc) -DSTANDALONE \"$$FILE\" -o \"$(@D)/$${FILE/.c/.asm}\"; " +
+          "  A=$${FILE/.c/.asm}; " +
+          "  A=$${A#external/org_deepmind_lab/}; " + # dirty hack to include as external repo
+          "  $(location :q3lcc) -DSTANDALONE \"$$FILE\" -o \"$(@D)/$$A\"; " +
           "done",
     tools = [
         ":q3cpp",
@@ -525,8 +529,10 @@ cc_binary(
         CODE_DIR + "/qcommon/md4.c",
         CODE_DIR + "/qcommon/unzip.c",
     ],
+    includes = [
+        CODE_DIR
+    ],
     copts = [
-        "-I" + CODE_DIR,
         "-w",
         ARCH_VAR,
         STANDALONE_VAR,
@@ -684,6 +690,7 @@ genrule(
     outs = ["baselab/" + f[7:] for f in ASSETS],
     cmd = "for s in $(SRCS); do " +
           "  A=$$(dirname $$s); " +
+          "  A=$${A#external/org_deepmind_lab/}; " + # dirty hack to include as external repo
           "  B=$${A/assets/}; " +
           "  mkdir -p $(@D)/baselab$${B}; " +
           "  ln -s -L -t $(@D)/baselab$${B} $$($(location //deepmind/support:realpath) $${s}); " +
@@ -703,6 +710,7 @@ genrule(
     outs = ["baselab/" + f for f in GAME_SCRIPT_ASSETS],
     cmd = "for s in $(SRCS); do " +
           "  A=$$(dirname $$s); " +
+          "  A=$${A#external/org_deepmind_lab/}; " + # dirty hack to include as external repo
           "  mkdir -p $(@D)/baselab/$${A}; " +
           "  ln -s -L -t $(@D)/baselab/$${A} $$($(location //deepmind/support:realpath) $${s}); " +
           "done",
@@ -733,7 +741,7 @@ genrule(
         "assets_oa/scripts/**/*.shader",
     ]),
     outs = ["baselab/assets_oa.pk3"],
-    cmd = "A=$$(pwd); (cd assets_oa; zip --quiet -r $${A}/$(OUTS) -- .)",
+    cmd = "A=$$(pwd); (cd $$(dirname $$(dirname $(location assets_oa/scripts/shaderlist.txt))); zip --quiet -r $${A}/$(OUTS) -- .)",
     visibility = ["//visibility:public"],
 )
 
@@ -749,7 +757,7 @@ genrule(
         "assets/scripts/**/*.shader",
     ]),
     outs = ["baselab/assets.pk3"],
-    cmd = "A=$$(pwd); (cd assets; zip --quiet -r $${A}/$(OUTS) -- .)",
+    cmd = "A=$$(pwd); (cd $$(dirname $$(dirname $(location assets/scripts/shaderlist.txt))); zip --quiet -r $${A}/$(OUTS) -- .)",
     visibility = ["//visibility:public"],
 )
 
@@ -757,7 +765,7 @@ genrule(
     name = "assets_bots_pk3",
     srcs = ["assets_oa/scripts/bots.txt"] + glob(["assets_oa/botfiles/**/*"]),
     outs = ["baselab/assets_bots.pk3"],
-    cmd = "A=$$(pwd); (cd assets_oa; zip --quiet -r $${A}/$(OUTS) -- .)",
+    cmd = "A=$$(pwd); (cd $$(dirname $$(dirname $(location assets_oa/scripts/bots.txt))); zip --quiet -r $${A}/$(OUTS) -- .)",
     visibility = ["//visibility:public"],
 )
 

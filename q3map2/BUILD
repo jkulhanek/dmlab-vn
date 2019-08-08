@@ -40,8 +40,10 @@ cc_library(
         "libs/picomodel/picointernal.h",
         "libs/picomodel/pm_fm.h",
     ],
+    includes = [
+        "libs",
+    ],
     copts = [
-        "-Iq3map2/libs",
         "-Wno-error",
         "-w",
     ],
@@ -68,12 +70,13 @@ cc_binary(
             "q3map2/lightmaps.c",
         ],
     ),
+    includes = [
+        "common",
+        "include",
+        "q3map2",
+    ],
     copts = [
         "-fno-strict-aliasing",
-        "-Iq3map2/common",
-        "-Iq3map2/include",
-        "-Iq3map2/q3map2",
-        "-Iexternal/glib_archive/glib",
         "-w",
         "-DMD4_Final=MD4Final",
         "-DMD4_Init=MD4Init",
