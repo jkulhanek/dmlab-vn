@@ -950,7 +950,9 @@ cc_library(
     name = "dmlablib",
     hdrs = ["public/dmlab.h"],
     data = GAME_ASSETS,
-    visibility = ["//testing:__subpackages__"],
+    visibility = [
+        "//visibility:public",
+    ],
     deps = [
         ":file_reader_types",
         ":level_cache_types",
@@ -959,6 +961,21 @@ cc_library(
         "dmlab_graphics_sdl": [":game_lib_sdl"],
         "//conditions:default": [":dmlab_so_loader"],
     }),
+)
+
+cc_library(
+    name = "dmlablib_sdl",
+    hdrs = ["public/dmlab.h"],
+    data = GAME_ASSETS,
+    visibility = [
+        "//visibility:public",
+    ],
+    deps = [
+        ":file_reader_types",
+        ":level_cache_types",
+        "//third_party/rl_api:env_c_api",
+        ":game_lib_sdl",
+    ],
 )
 
 cc_binary(
