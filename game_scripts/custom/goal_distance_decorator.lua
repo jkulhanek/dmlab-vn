@@ -1,14 +1,5 @@
 local game = require 'dmlab.system.game'
-
-local function copy(obj, seen)
-    if type(obj) ~= 'table' then return obj end
-    if seen and seen[obj] then return seen[obj] end
-    local s = seen or {}
-    local res = setmetatable({}, getmetatable(obj))
-    s[obj] = res
-    for k, v in pairs(obj) do res[copy(k, s)] = copy(v, s) end
-    return res
-end
+local tensor = require 'dmlab.system.tensor'
 
 local function decorator(api, kwargs)
     local position = nil
@@ -27,10 +18,10 @@ local function decorator(api, kwargs)
 
     local customObservationSpec = api.customObservationSpec
     function api:customObservationSpec()
-        local spec = customObservationSpec and copy(customObservationSpec(self)) or {}
-        spec[#spec] = {name = 'DISTANCE', type = 'Doubles', shape = {1}}
-        spec[#spec] = {name = 'SHORTEST_DISTANCE', type = 'Doubles', shape = {1}}
-        return spec
+        local specs = customObservationSpec and customObservationSpec(self) or {}
+        specs[#specs + 1] = {name = 'DISTANCE', type = 'Doubles', shape = {1}}
+        specs[#specs + 1] = {name = 'SHORTEST_DISTANCE', type = 'Doubles', shape = {1}}
+        return specs
     end
 
     local modifyControl = api.modifyControl

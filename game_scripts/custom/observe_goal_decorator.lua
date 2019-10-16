@@ -1,6 +1,16 @@
 local game = require 'dmlab.system.game'
 local random = require 'common.random'
 
+local function copy(obj, seen)
+    if type(obj) ~= 'table' then return obj end
+    if seen and seen[obj] then return seen[obj] end
+    local s = seen or {}
+    local res = setmetatable({}, getmetatable(obj))
+    s[obj] = res
+    for k, v in pairs(obj) do res[copy(k, s)] = copy(v, s) end
+    return res
+end
+
 local SCREEN_SHAPE = game:screenShape().buffer
 
 local function computeFinalPositionAndOrientation(goals, kwargs)
@@ -75,7 +85,7 @@ local function decorator(api, kwargs)
 
     local customObservationSpec = api.customObservationSpec
     function api:customObservationSpec()
-        local specs = customObservationSpec and customObservationSpec(api) or {}
+        local specs = customObservationSpec and customObservationSpec(self) or {}
         for i, spec in ipairs(obsSpec) do
             specs[#specs + 1] = spec
         end
