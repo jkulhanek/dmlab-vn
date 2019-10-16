@@ -5,6 +5,7 @@ local pickups = require 'common.pickups'
 local hit_goal_decorator = require 'custom.hit_goal_decorator'
 local observe_goal_decorator = require 'custom.observe_goal_decorator'
 local custom_observations = require 'decorators.custom_observations'
+local goal_distance_decorator = require 'custom.goal_distance_decorator'
 local pickups_spawn = require 'dmlab.system.pickups_spawn'
 local game = require 'dmlab.system.game'
 local timeout = require 'decorators.timeout'
@@ -320,7 +321,7 @@ function api:nextMap()
 
   -- Select new goal
   self:_resetGoal()
-  self:updateGoals(self._currentEntities)
+  self:updateGoals(self._currentEntities, spawnLocation)
   return self._map
 end
 
@@ -375,5 +376,6 @@ hit_goal_decorator(api, {
 observe_goal_decorator(api, {
   cellSize = CELL_SIZE,
 })
+goal_distance_decorator(api)
 
 return api

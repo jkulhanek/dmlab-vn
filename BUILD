@@ -992,8 +992,7 @@ cc_binary(
     linkshared = 1,
     linkstatic = 1,
     visibility = [
-        "//python/pip_package:__subpackages__",
-        "//python/tests:__subpackages__",
+        "//visibility:public"
     ],
     deps = [
         ":dmlablib",
@@ -1012,8 +1011,15 @@ py_library(
     name = "python_random_agent_lib",
     srcs = ["python/random_agent.py"],
     data = [":deepmind_lab.so"],
-    visibility = ["//python/tests:__subpackages__"],
+    visibility = ["//visibility:public"],
     deps = ["@six_archive//:six"],
+)
+
+py_library(
+    name = "python_lib",
+    srcs = [],
+    data = [":deepmind_lab.so"],
+    visibility = ["//visibility:public"],
 )
 
 LOAD_TEST_SCRIPTS = [

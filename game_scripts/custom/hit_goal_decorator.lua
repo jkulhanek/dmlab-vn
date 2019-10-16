@@ -70,13 +70,13 @@ local function decorator(api, kwargs)
     else
       hittingGoal = false
     end
-    return modifyControl and modifyControl(self, control) or actions
+    return modifyControl and modifyControl(self, actions) or actions
   end
 
   local updateGoals = api.updateGoals
-  function api:updateGoals(goals)
+  function api:updateGoals(goals, spawn)
     currentGoals = goals
-    return updateGoals and updateGoals(self, goals) or nil
+    return updateGoals and updateGoals(self, goals, spawn) or nil
   end
 
   local nextMap = api.nextMap

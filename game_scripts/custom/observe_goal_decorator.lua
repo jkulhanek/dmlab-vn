@@ -61,10 +61,10 @@ local function decorator(api, kwargs)
     }
 
     local updateGoals = api.updateGoals
-    function api:updateGoals(goals)
+    function api:updateGoals(goals, spawn)
         currentGoals = goals
         goalPosAndAngles = computeFinalPositionAndOrientation(goals, kwargs)
-        return updateGoals and updateGoals(self, goals) or nil
+        return updateGoals and updateGoals(self, goals, spawn) or nil
     end
 
     local nextMap = api.nextMap
