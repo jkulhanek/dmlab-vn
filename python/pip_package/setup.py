@@ -10,21 +10,21 @@ REQUIRED_PACKAGES = [
 ]
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-README = open(os.path.join(HERE, "README.md"), 'r').read()
+README = open(os.path.join(HERE, "README.md"), 'r').read() + '\n'
 LICENSE = open(os.path.join(HERE, "LICENSE"), 'r').read()
 
 setuptools.setup(
     name='dmhouse',
     version='1.0.0',
     long_description=README,
-    description='DMHouse 3D environment simulator',
     long_description_content_type="text/markdown",
+    description='DMHouse 3D environment simulator',
     url='https://github.com/jkulhanek/dmlab-vn',
     classifiers=[
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3",
     ],
-    license=LICENSE,
+    license='MIT',
     author='Jonas Kulhanek',
     author_email='jonas.kulhanek@live.com',
     packages=setuptools.find_packages(),

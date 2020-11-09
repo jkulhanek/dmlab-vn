@@ -37,6 +37,7 @@ function main() {
 
   cp -- README.md "${TMPDIR}"
   cp -- LICENSE "${TMPDIR}"
+  cp -- LICENSE "${TMPDIR}/dmhouse/LICENSE"
   cp -- python/pip_package/setup.py "${TMPDIR}"
   cp -- python/pip_package/__init__.py "${TMPDIR}/dmhouse/__init__.py"
   cp -- python/pip_package/_dmhouse.py "${TMPDIR}/dmhouse/_dmhouse.py"

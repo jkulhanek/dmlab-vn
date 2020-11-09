@@ -12,7 +12,7 @@
 </div>
 
 ## Getting started
-Before getting started, please ensure you have all required packages installed (SDL2, python3.8, Messa, gettext).
+Before getting started, please ensure you have all required packages installed (SDL2, python3.8, OSMesa, gettext).
 On ubuntu you can issue the following command:
 ```bash
 $ sudo apt install -y libsdl2-dev python3.8-dev python3.8-numpy libosmesa6-dev gettext
@@ -93,7 +93,7 @@ $ pip install /tmp/dmlab_pkg/DMHouse-*-py3-none-any.whl
  built from the *ioquake3* game engine, and it uses the tools *q3map2* and
  *bspc* for map creation.
 
-* *DeepMind Lab* is taken from [github.com](https://github.com/deepmind/lab).
+* *DeepMind Lab* is taken from [github.com/deepmind/lab](https://github.com/deepmind/lab).
 
 * *bspc* is taken from [github.com/TTimo/bspc](https://github.com/TTimo/bspc),
   revision d9a372db3fb6163bc49ead41c76c801a3d14cf80. There are virtually no
