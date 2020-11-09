@@ -815,6 +815,7 @@ cc_library(
         "-lrt",
     ],
     deps = IOQ3_COMMON_DEPS,
+    alwayslink = 1,
 )
 
 cc_library(
@@ -834,6 +835,7 @@ cc_library(
     defines = IOQ3_COMMON_DEFINES,
     linkopts = ["-lOSMesa"],
     deps = IOQ3_COMMON_DEPS,
+    alwayslink = 1,
 )
 
 cc_library(
@@ -856,6 +858,7 @@ cc_library(
         "-lX11",
     ],
     deps = IOQ3_COMMON_DEPS,
+    alwayslink = 1,
 )
 
 cc_library(
@@ -878,6 +881,7 @@ cc_library(
         "-lGL",
     ],
     deps = IOQ3_COMMON_DEPS + ["//third_party/GL/util:egl_util"],
+    alwayslink = 1,
 )
 
 cc_binary(

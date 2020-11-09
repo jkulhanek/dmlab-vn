@@ -172,9 +172,9 @@ static int Lab_init(PyObject* pself, PyObject* args, PyObject* kwds) {
   {
 #if PY_MAJOR_VERSION >= 3
     PyObject* module =
-        PyImport_AddModule("deepmind_lab");
+        PyImport_AddModule("dmhouse");
     if (module == NULL) {
-      PyErr_SetString(PyExc_RuntimeError, "deepmind_lab module not loaded");
+      PyErr_SetString(PyExc_RuntimeError, "dmhouse module not loaded");
       return -1;
     }
 #else  // PY_MAJOR_VERSION >= 3
@@ -702,9 +702,9 @@ static PyMethodDef LabObject_methods[] = {
     {NULL} /* Sentinel */
 };
 
-static PyTypeObject deepmind_lab_LabType = {
+static PyTypeObject dmhouse_LabType = {
     PyVarObject_HEAD_INIT(NULL, 0) /* ob_size */
-    "deepmind_lab.Lab",            /* tp_name */
+    "dmhouse.Lab",            /* tp_name */
     sizeof(LabObject),             /* tp_basicsize */
     0,                             /* tp_itemsize */
     LabObject_dealloc,             /* tp_dealloc */
@@ -788,9 +788,9 @@ static PyMethodDef module_methods[] = {
 static int load_module_impl(PyObject* module, LabModuleState* state) {
 #if PY_MAJOR_VERSION >= 3
   PyTypeObject* lab_type = malloc(sizeof(PyTypeObject));
-  memcpy(lab_type, &deepmind_lab_LabType, sizeof(PyTypeObject));
+  memcpy(lab_type, &dmhouse_LabType, sizeof(PyTypeObject));
 #else  // PY_MAJOR_VERSION >= 3
-  PyTypeObject* lab_type = &deepmind_lab_LabType;
+  PyTypeObject* lab_type = &dmhouse_LabType;
 #endif  // PY_MAJOR_VERSION >= 3
   if (PyType_Ready(lab_type) < 0) return -1;
   Py_INCREF(lab_type);
@@ -897,8 +897,8 @@ static PyModuleDef_Slot module_slots[] = {
 
 static PyModuleDef module_def = {
     PyModuleDef_HEAD_INIT,
-    "deepmind_lab",             /* m_name */
-    "DeepMind Lab API module",  /* m_doc */
+    "dmhouse",             /* m_name */
+    "DMHouse API module",  /* m_doc */
     sizeof(LabModuleState),     /* m_size */
     module_methods,             /* m_methods */
     module_slots,               /* m_slots */
@@ -907,7 +907,7 @@ static PyModuleDef module_def = {
     NULL,                       /* m_free */
 };
 
-PyMODINIT_FUNC PyInit_deepmind_lab(void) {
+PyMODINIT_FUNC PyInit_dmhouse(void) {
   return PyModuleDef_Init(&module_def);
 }
 
@@ -922,9 +922,9 @@ static LabModuleState* get_module_state(PyObject* module) {
   return &singleton_mod_state;
 }
 
-PyMODINIT_FUNC initdeepmind_lab(void) {
+PyMODINIT_FUNC initdmhouse(void) {
   PyObject* module =
-      Py_InitModule3("deepmind_lab", module_methods, "DeepMind Lab API module");
+      Py_InitModule3("dmhouse", module_methods, "DMHouse API module");
 
   if (module != NULL && load_module_impl(module, &singleton_mod_state) == 0) {
     import_array();

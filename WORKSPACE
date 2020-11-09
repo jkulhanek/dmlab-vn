@@ -101,6 +101,12 @@ http_archive(
     ],
 )
 
+http_archive(
+    name = "rules_cc",
+    strip_prefix = "rules_cc-master",
+    urls = ["https://github.com/bazelbuild/rules_cc/archive/master.zip"],
+)
+
 # TODO: Replace with hermetic build
 new_local_repository(
     name = "sdl_system",
